@@ -7,7 +7,6 @@ Usage:
 /log [-m [month]] [-a]
 
 """
-# TODO: выложить на github
 
 import config
 import telebot
