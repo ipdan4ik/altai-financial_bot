@@ -18,7 +18,6 @@ if hasattr(config, 'proxy_server'):
 bot = telebot.TeleBot(config.access_token)
 bot_name = bot.get_me().username
 users = []
-admin = []
 
 
 def create_tables():
