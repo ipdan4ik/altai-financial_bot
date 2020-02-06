@@ -16,6 +16,10 @@ if hasattr(config, 'proxy_server'):
     telebot.apihelper.proxy = config.proxy_server
 
 bot = telebot.TeleBot(config.access_token)
+
+if not bot.config['api_key']:
+    bot.config['api_key'] = config.access_token
+
 bot_name = bot.get_me().username
 
 
