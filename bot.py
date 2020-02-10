@@ -196,12 +196,7 @@ def command_log(message):
                                     order by date desc''').fetchall():
                 (m_cid, m_uid, m_com, m_val, m_dat, m_mem) = item
                 m_name = c.execute('select name from user where u_id = ?', (m_uid,)).fetchone()[0]
-                text = text + '#%s [%s] %sр(|%s) - %s \t(%s)\n' % (m_cid, m_name, m_val, m_mem, m_com, m_dat)
-                for split in c.execute('''select u_id, proc, fin_value from split 
-                                            where c_id == ?''', str(m_cid)).fetchall():
-                    (s_uid, s_prc, s_val) = split
-                    s_name = c.execute('select name from user where u_id = ?', (s_uid,)).fetchone()[0]
-                    text = text + '╚═%.f%% (%sр) - %s\n' % (s_prc*100, s_val, s_name)
+                text += '#%s [%s] %sр(|%s) - %s \t(%s)\n' % (m_cid, m_name, m_val, m_mem, m_com, m_dat)
             bot.send_message(message.chat.id, text)
 
 
