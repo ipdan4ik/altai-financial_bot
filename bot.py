@@ -11,18 +11,16 @@ Usage:
 import config
 import telebot
 import sqlite3
+import pickle
 
 if hasattr(config, 'proxy_server'):
     telebot.apihelper.proxy = config.proxy_server
 
 bot = telebot.TeleBot(config.access_token)
 
-if not bot.config['api_key']:
-    bot.config['api_key'] = config.access_token
-
 bot_name = bot.get_me().username
-users = []
-
+users = pickle.load(open('users.p', 'rb'))
+admin = config.admin
 
 def create_tables():
     with sqlite3.connect("database.sqlite") as conn:
@@ -48,6 +46,8 @@ fin_value integer not null,
 foreign key(u_id) references user(u_id),
 foreign key(c_id) references cost(c_id)
 );''')
+
+create_tables()
 
 
 def get_date(val, month='01.2020', rel=-1, date=None):
@@ -75,10 +75,12 @@ def command_reg(message):
         if uid in users:
             c.execute('''update user set name = ? where u_id = ?''', (message.from_user.first_name, str(uid)))
             bot.send_message(message.chat.id, 'Данные обновлены!')
-        else:
+        elif uid not in users:
             c.execute('''insert into user values (?, ?)''', (str(uid), message.from_user.first_name))
             users.append(uid)
             bot.send_message(message.chat.id, 'Пользователь %d успешно зарегистрирован' % (uid,))
+            print('[REG] %s' %(uid))
+            pickle.dump(users, open('users.p', 'wb'))
         conn.commit()
 
 
@@ -87,9 +89,10 @@ def command_add(message):
     uid = message.from_user.id
     if uid in users:
         with sqlite3.connect("database.sqlite") as conn:
-            if len(message.text.split()) == 3:
+            if len(message.text.split()) >= 3:
                 c = conn.cursor()
-                (m_val, m_com) = message.text.split()[1:]
+                m_val = message.text.split()[1]
+                m_com = ' '.join(message.text.split()[2:])
                 m_date = get_date('now_full')
                 cnt = c.execute('select count(u_id) from user').fetchone()[0]
                 c.execute('''insert into cost(u_id, comment, value, date, members) values(?, ?, ?, ?, ?)''',
@@ -99,9 +102,7 @@ def command_add(message):
                 for item in c.execute('select u_id from user').fetchall():
                     c.execute('''insert into split(c_id, u_id, proc, fin_value) values(?, ?, ?, ?)''',
                               (str(m_cid), str(item[0]), str(m_proc), str(int(m_val) * m_proc)))
-                bot.send_message(message.chat.id, 'Чек на сумму %sр. успешно добавлен' % (str(m_val),))
-            elif len(message.text.split() > 3):
-                pass    # TODO: Добавить разделение между кастомным количеством людей
+                bot.send_message(message.chat.id, 'Чек на сумму %sр. успешно добавлен' % (str(m_val),))         # TODO: Добавить разделение между кастомным кол-вом людей
             conn.commit()
 
 
@@ -204,8 +205,5 @@ def command_log(message):
 
 if __name__ == "__main__":
     create_tables()
-    with sqlite3.connect("database.sqlite") as database_connection:
-        cur = database_connection.cursor()
-        users = cur.execute('select u_id from user').fetchall()
     # bot.set_update_listener(listener)
     bot.polling()
