@@ -22,6 +22,7 @@ bot_name = bot.get_me().username
 users = pickle.load(open('users.p', 'rb'))
 admin = config.admin
 
+
 def create_tables():
     with sqlite3.connect("database.sqlite") as conn:
         c = conn.cursor()
@@ -46,6 +47,7 @@ fin_value integer not null,
 foreign key(u_id) references user(u_id),
 foreign key(c_id) references cost(c_id)
 );''')
+
 
 create_tables()
 
@@ -164,9 +166,9 @@ def command_log(message):
                 u_id = user[0]
                 name = user[1]
                 user_count = c.execute('''select count(u_id) from user''').fetchone()
-                full_sum = c.execute('''select sum(fin_value) from split where u_id == ?''', (u_id, )).fetchone()
+                full_sum = c.execute('''select sum(value) from cost where u_id == ?''', (u_id, )).fetchone()
                 if len(user_count) and full_sum[0]:
-                    relative_sum = (c.execute('''select sum(fin_value) from split''').fetchone()[0]/user_count[0]) - full_sum[0]
+                    relative_sum = (c.execute('''select sum(value) from cost''').fetchone()[0]/user_count[0]) - full_sum[0]
                     text += '[%s] %s - %sр. (%s)\n' % (u_id, name, full_sum[0], relative_sum)
             bot.send_message(message.chat.id, text)
         elif message.text.split()[1] in ['-m', '--month']:
