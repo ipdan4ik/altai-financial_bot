@@ -12,6 +12,7 @@ import config
 import telebot
 import sqlite3
 import pickle
+import time
 
 if hasattr(config, 'proxy_server'):
     telebot.apihelper.proxy = config.proxy_server
@@ -47,9 +48,6 @@ fin_value integer not null,
 foreign key(u_id) references user(u_id),
 foreign key(c_id) references cost(c_id)
 );''')
-
-
-create_tables()
 
 
 def get_date(val, month='01.2020', rel=-1, date=None):
@@ -203,4 +201,7 @@ def command_log(message):
 if __name__ == "__main__":
     create_tables()
     # bot.set_update_listener(listener)
-    bot.polling()
+    while True:
+        bot.polling()
+        print("[RESTART]")
+        time.sleep(60)
